@@ -1,84 +1,39 @@
-import React from 'react';
-import { BsPlus, BsFillLightningFill } from 'react-icons/bs';
-import { FaDiscord, FaFire, FaPoo } from 'react-icons/fa';
-import { IoMdCompass } from 'react-icons/io';
-
 const SideBar = () => {
   return (
-    <div
-      className='relative top-0 left-0 m-0 flex h-screen min-w-min
-                  flex-col items-center bg-gray-300
-                  pt-3 text-gray-900
-                  shadow dark:bg-gray-900 dark:text-white'
-    >
-      <SideBarIcon
-        icon={<FaDiscord size={28} />}
-        isServerIcon={true}
-        text={'Direct Messages'}
-      />
+    <div className="fixed top-0 left-0 h-screen w-16 flex flex-col
+                  bg-black shadow-lg">
+      <SideBarIcon icon="💰" text="E-Money Society" />
       <Divider />
-      <SideBarIcon
-        icon={<FaFire size={28} />}
-        isActive={true}
-        isServerIcon={true}
-      />
-      <SideBarIcon
-        icon={<BsFillLightningFill size={20} />}
-        isServerIcon={true}
-      />
-      <SideBarIcon icon={<FaPoo size={20} />} isServerIcon={true} />
-      <SideBarIcon
-        icon={<BsPlus size={32} />}
-        text={'Add a Server'}
-        isServerIcon={false}
-      />
-      <SideBarIcon
-        icon={<IoMdCompass size={22} />}
-        text={'Explore Public Servers'}
-        isServerIcon={false}
-      />
+      <SideBarIcon icon="₿" text="Crypto Trading" />
+      <SideBarIcon icon="💱" text="Forex" />
+      <SideBarIcon icon="📈" text="Stocks" />
+      <SideBarIcon icon="🎨" text="NFTs" />
+      <Divider />
+      <SideBarIcon icon="➕" text="Adaugă Curs" />
     </div>
   );
 };
 
-const SideBarIcon = ({
-  icon,
-  isActive = false,
-  isServerIcon = false,
-  text = 'tooltip',
-}) => (
-  <div className='group relative mb-2 min-w-min px-3'>
-    <Pip isActive={isActive} />
-    <div
-      className={`sidebar-icon ${isActive ? 'active' : ''} ${
-        !isServerIcon
-          ? 'text-green-500 hover:bg-green-500 dark:text-green-500 dark:hover:bg-green-500 dark:hover:text-white'
-          : ''
-      }`}
-    >
-      {icon}{' '}
-      <span className='sidebar-tooltip group-hover:scale-100'>{text}</span>
-    </div>
+const SideBarIcon = ({ icon, text = 'tooltip 💡' }) => (
+  <div className="relative flex items-center justify-center 
+                h-12 w-12 mt-2 mb-2 mx-auto  
+              bg-gray-800 hover:bg-green-500 hover:text-black
+                hover:rounded-xl rounded-3xl
+                transition-all duration-300 ease-linear
+                cursor-pointer shadow-lg group">
+    <span className="text-2xl text-green-500 group-hover:text-black">{icon}</span>
+    
+    <span className="absolute w-auto p-2 m-2 min-w-max left-14
+                   bg-gray-900 text-green-500
+                   rounded-md shadow-md
+                   text-xs font-bold
+                   transition-all duration-100 scale-0 origin-left
+                   group-hover:scale-100 border border-green-500/20 z-50">
+      {text}
+    </span>
   </div>
 );
 
-const Pip = ({ isActive }) => {
-  return (
-    <div
-      className={`absolute top-1 -left-1 h-10 w-2
-                  scale-0 rounded-lg bg-black
-                  transition-all
-                  dark:bg-gray-100
-                  ${
-                    !isActive
-                      ? 'group-hover:scale-y-50 group-hover:scale-x-100'
-                      : ''
-                  }
-                  ${isActive ? 'scale-100' : ''}`}
-    ></div>
-  );
-};
-
-const Divider = () => <hr className='sidebar-hr' />;
+const Divider = () => <hr className="bg-green-500/20 border border-green-500/10 rounded-full mx-2" />;
 
 export default SideBar;

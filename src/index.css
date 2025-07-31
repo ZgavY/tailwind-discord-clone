@@ -1,45 +1,179 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap');
-
+/* src/index.css - Stiluri globale pentru tema terminal */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-*,
-*::before,
-*::after {
+
+/* Import fonturi */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;700&display=swap');
+
+/* Reset și stiluri globale */
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-*, body {
-  font-family: 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background-color: #0a0a0a;
+  color: #e0e0e0;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-x: hidden;
 }
 
-@layer components {
-  .sidebar-icon {
-      @apply relative flex items-center justify-center h-12 w-12 mx-auto
-      bg-white dark:bg-gray-700 hover:bg-purple-500 dark:hover:bg-purple-500
-      dark:text-gray-100 text-black hover:text-white
-      rounded-3xl hover:rounded-xl
-      transition-all duration-300 ease-out cursor-pointer;
-    }
+/* Efect de scan lines peste tot (subtil) */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 65, 0.03),
+    rgba(0, 255, 65, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
 
-  .sidebar-icon.active {
-    @apply bg-purple-500 text-white rounded-xl;
+/* Scrollbar custom */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00ff41;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00cc33;
+  box-shadow: 0 0 5px #00ff41;
+}
+
+/* Text selection */
+::selection {
+  background-color: #00ff41;
+  color: #0a0a0a;
+}
+
+/* Clase utilitare custom */
+@layer utilities {
+  /* Text cu glow effect */
+  .text-glow {
+    text-shadow: 0 0 5px currentColor;
+  }
+  
+  .text-glow-strong {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
   }
 
-  .sidebar-tooltip {
-    @apply absolute w-auto p-2 m-2 min-w-max left-14
-            rounded-md shadow-lg
-            text-black bg-white
-            dark:text-white dark:bg-gray-900
-            text-sm font-bold
-            transition-all duration-100 scale-0 origin-left
+  /* Border terminal style */
+  .border-terminal {
+    border: 1px solid #00ff41;
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
   }
 
-  .sidebar-hr {
-    @apply bg-gray-400 dark:bg-gray-800
-              border border-gray-400 dark:border-gray-800 rounded-full
-              mx-auto mb-2 w-8;
+  /* Terminal prompt */
+  .terminal-prompt::before {
+    content: '$ ';
+    color: #00ff41;
   }
+
+  .terminal-prompt-root::before {
+    content: '# ';
+    color: #ff3333;
+  }
+
+  /* Typing cursor */
+  .terminal-cursor::after {
+    content: '_';
+    animation: terminalBlink 1s infinite;
+    color: #00ff41;
+  }
+
+  /* ASCII art container */
+  .ascii-border {
+    border: 1px solid #00ff41;
+    padding: 1rem;
+    position: relative;
+  }
+
+  .ascii-border::before {
+    content: '┌─────────────────┐';
+    position: absolute;
+    top: -0.5rem;
+    left: 0.5rem;
+    background: #0a0a0a;
+    padding: 0 0.5rem;
+    color: #00ff41;
+    font-size: 12px;
+  }
+
+  /* Glitch effect on hover */
+  .glitch-hover:hover {
+    animation: glitch 0.3s ease-in-out;
+  }
+
+  /* Terminal window style */
+  .terminal-window {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    background: #2d2d2d;
+    padding: 0.5rem;
+    border-bottom: 1px solid #00ff41;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid;
+  }
+
+  .terminal-dot-red {
+    border-color: #ff3333;
+    background: #ff333350;
+  }
+
+  .terminal-dot-yellow {
+    border-color: #ffcc00;
+    background: #ffcc0050;
+  }
+
+  .terminal-dot-green {
+    border-color: #00ff41;
+    background: #00ff4150;
+  }
+}
+
+/* Animații pentru text typing effect */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+.typing-effect {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 2s steps(40, end);
 }
