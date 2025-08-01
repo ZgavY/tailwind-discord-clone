@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import ServerList from './ServerList';
 import ChannelSidebar from './ChannelSidebar';
 import MainContent from './MainContent';
-import MemberList from './MemberList';
+import MemberList from './MembersList';
 
 const EMoneyPlatform = () => {
   const [activeChannel, setActiveChannel] = useState('welcome');

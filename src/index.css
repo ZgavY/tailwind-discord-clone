@@ -1,11 +1,6 @@
-/* src/index.css - Stiluri globale pentru tema terminal */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import fonturi */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;700&display=swap');
 
 /* Reset și stiluri globale */
 * {
@@ -17,13 +12,29 @@
 body {
   font-family: 'JetBrains Mono', monospace;
   background-color: #0a0a0a;
-  color: #e0e0e0;
+  color: #00ff41;
   font-size: 13px;
   line-height: 1.4;
   overflow-x: hidden;
+  
+  /* Previne scroll-ul orizontal pe mobile */
+  position: relative;
+  width: 100%;
 }
 
-/* Efect de scan lines peste tot (subtil) */
+/* Ajustări pentru mobile */
+@media (max-width: 767px) {
+  body {
+    font-size: 14px; /* Text mai mare pe mobile */
+  }
+  
+  /* Previne zoom-ul pe input focus în iOS */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Efect de scan lines - mai subtil pe mobile */
 body::before {
   content: '';
   position: fixed;
@@ -42,24 +53,40 @@ body::before {
   z-index: 1;
 }
 
-/* Scrollbar custom */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+@media (max-width: 767px) {
+  body::before {
+    opacity: 0.5; /* Mai subtil pe mobile */
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
+/* Scrollbar custom - doar pe desktop */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #00ff41;
+    border-radius: 0;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00cc33;
+    box-shadow: 0 0 5px #00ff41;
+  }
 }
 
-::-webkit-scrollbar-thumb {
-  background: #00ff41;
-  border-radius: 0;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #00cc33;
-  box-shadow: 0 0 5px #00ff41;
+/* Mobile scrollbar - mai subțire */
+@media (max-width: 767px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
 }
 
 /* Text selection */
@@ -68,112 +95,65 @@ body::before {
   color: #0a0a0a;
 }
 
-/* Clase utilitare custom */
-@layer utilities {
-  /* Text cu glow effect */
-  .text-glow {
-    text-shadow: 0 0 5px currentColor;
+/* Safe area pentru iPhone-uri cu notch */
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(12px, env(safe-area-inset-top));
   }
   
-  .text-glow-strong {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  .safe-area-bottom {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
+}
 
-  /* Border terminal style */
-  .border-terminal {
-    border: 1px solid #00ff41;
-    box-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+/* Animații mai rapide pe mobile pentru performanță */
+@media (max-width: 767px) {
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.2s !important;
   }
+}
 
-  /* Terminal prompt */
-  .terminal-prompt::before {
-    content: '$ ';
-    color: #00ff41;
+/* Touch feedback pentru mobile */
+@media (hover: none) {
+  button:active,
+  .cursor-pointer:active {
+    opacity: 0.7;
+    transform: scale(0.98);
   }
+}
 
-  .terminal-prompt-root::before {
-    content: '# ';
-    color: #ff3333;
-  }
+/* Prevent text selection pe UI elements */
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 
-  /* Typing cursor */
-  .terminal-cursor::after {
-    content: '_';
-    animation: terminalBlink 1s infinite;
-    color: #00ff41;
-  }
-
-  /* ASCII art container */
-  .ascii-border {
-    border: 1px solid #00ff41;
-    padding: 1rem;
+/* Mobile-specific utilities */
+@layer utilities {
+  /* Swipeable hint */
+  .swipe-hint {
     position: relative;
   }
-
-  .ascii-border::before {
-    content: '┌─────────────────┐';
+  
+  .swipe-hint::after {
+    content: '';
     position: absolute;
-    top: -0.5rem;
-    left: 0.5rem;
-    background: #0a0a0a;
-    padding: 0 0.5rem;
-    color: #00ff41;
-    font-size: 12px;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, #00ff41, transparent);
+    opacity: 0.3;
+    animation: swipeHint 2s ease-in-out infinite;
   }
-
-  /* Glitch effect on hover */
-  .glitch-hover:hover {
-    animation: glitch 0.3s ease-in-out;
+  
+  @keyframes swipeHint {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
   }
-
-  /* Terminal window style */
-  .terminal-window {
-    background: #1a1a1a;
-    border: 1px solid #2d2d2d;
-    border-radius: 0;
-    overflow: hidden;
-  }
-
-  .terminal-header {
-    background: #2d2d2d;
-    padding: 0.5rem;
-    border-bottom: 1px solid #00ff41;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .terminal-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1px solid;
-  }
-
-  .terminal-dot-red {
-    border-color: #ff3333;
-    background: #ff333350;
-  }
-
-  .terminal-dot-yellow {
-    border-color: #ffcc00;
-    background: #ffcc0050;
-  }
-
-  .terminal-dot-green {
-    border-color: #00ff41;
-    background: #00ff4150;
-  }
-}
-
-/* Animații pentru text typing effect */
-@keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
-}
-
-.typing-effect {
-  overflow: hidden;
-  white-space: nowrap;
-  animation: typing 2s steps(40, end);
 }
