@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const ChannelSidebar = ({ onChannelClick }) => {
-  const [selectedChannel, setSelectedChannel] = useState('welcome');
+const ChannelSidebar = ({ selectedChannel, onChannelChange, onChannelClick }) => {
 
   const handleChannelClick = (channelId) => {
-    setSelectedChannel(channelId);
+    onChannelChange(channelId);
     // Pe mobil, închide sidebar după selectare
     if (window.innerWidth < 768 && onChannelClick) {
       onChannelClick();
@@ -43,34 +42,34 @@ const ChannelSidebar = ({ onChannelClick }) => {
   ];
 
   return (
-    <div className="w-60 bg-gray-900/50 border-r border-green-500/30 flex flex-col z-20 h-full">
+    <div className="w-60 bg-discord-channels border-r border-discord-border flex flex-col z-20 h-full shadow-matrix">
       {/* Pe mobil, adaugă spacing pentru nav bar */}
       <div className="h-12 md:hidden" />
       
       {/* Server Header */}
-      <div className="h-12 border-b border-green-500/30 flex items-center px-4">
-        <span className="text-green-500 font-bold text-sm">[CRYPTO_TRADING]</span>
+      <div className="h-12 border-b border-discord-border flex items-center px-4 shadow-md">
+        <span className="text-discord-green font-semibold text-sm">[E-MONEY_SOCIETY]</span>
       </div>
 
       {/* Channels */}
       <div className="flex-1 overflow-y-auto p-2">
         {categories.map((category) => (
           <div key={category.id} className="mb-4">
-            <div className="text-green-500/70 text-xs mb-1 flex items-center">
+            <div className="text-discord-text-muted text-xs font-semibold mb-1 flex items-center uppercase">
               <span className="mr-1">▼</span>
-              <span className="uppercase">{category.name}/</span>
+              <span className="uppercase text-discord-green">{category.name}/</span>
             </div>
             {category.channels.map((channel) => (
               <div
                 key={channel.id}
                 onClick={() => !channel.locked && handleChannelClick(channel.id)}
-                className={`flex items-center px-2 py-1 cursor-pointer transition-all text-xs md:text-xs
+                className={`flex items-center px-2 py-1 mx-1 rounded cursor-pointer transition-all text-sm
                   ${selectedChannel === channel.id 
-                    ? 'bg-green-500/20 text-green-500 shadow-[inset_0_0_10px_rgba(0,255,65,0.3)]' 
-                    : 'text-green-500/70 hover:text-green-500 hover:bg-green-500/10'
+                    ? 'bg-discord-green-dim text-discord-text' 
+                    : 'text-discord-text-muted hover:text-discord-green hover:bg-discord-hover/30'
                   } ${channel.locked ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <span className="mr-2">
+                <span className="mr-2 text-discord-green">
                   {channel.type === 'voice' ? '🔊' : '#'}
                 </span>
                 <span className="flex-1 truncate">
@@ -78,7 +77,7 @@ const ChannelSidebar = ({ onChannelClick }) => {
                   {channel.locked && ' 🔒'}
                 </span>
                 {channel.users && (
-                  <span className="text-green-500/50 text-xs ml-1">{channel.users}</span>
+                  <span className="text-discord-text-dark text-xs ml-1">{channel.users}</span>
                 )}
               </div>
             ))}
@@ -87,13 +86,13 @@ const ChannelSidebar = ({ onChannelClick }) => {
       </div>
 
       {/* User Panel */}
-      <div className="h-14 border-t border-green-500/30 flex items-center px-2 bg-black/50">
-        <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500 mr-2 flex-shrink-0"></div>
+      <div className="h-14 border-t border-discord-border flex items-center px-2 bg-discord-channels">
+        <div className="w-8 h-8 rounded-full bg-discord-green-bright mr-2 flex-shrink-0 shadow-glow-green-sm"></div>
         <div className="flex-1 min-w-0">
-          <div className="text-green-500 text-xs font-bold truncate">root@emoney</div>
-          <div className="text-green-500/50 text-xs">#1337</div>
+          <div className="text-discord-green text-sm font-semibold truncate">root@emoney</div>
+          <div className="text-discord-text-muted text-xs">#1337</div>
         </div>
-        <button className="text-green-500/70 hover:text-green-500 text-xs p-1">⚙</button>
+        <button className="text-discord-text-muted hover:text-discord-green text-lg p-1 transition-all">⚙</button>
       </div>
     </div>
   );

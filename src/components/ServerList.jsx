@@ -20,26 +20,26 @@ const ServerList = ({ onServerClick }) => {
   };
 
   return (
-    <div className="w-20 md:w-20 bg-gray-900 flex flex-col items-center py-4 space-y-3 z-20 h-full">
+    <div className="w-20 md:w-20 bg-discord-sidebar border-r border-discord-border flex flex-col items-center py-4 space-y-3 z-20 h-full shadow-matrix">
       {/* Pe mobil, adaugă spacing pentru nav bar */}
       <div className="h-12 md:hidden" />
       
       {/* Logo */}
-      <div className="w-12 h-12 bg-black border border-green-500 flex items-center justify-center text-green-500 font-bold text-lg mb-2 cursor-pointer hover:bg-green-500/10 hover:shadow-[0_0_10px_rgba(0,255,65,0.5)] transition-all">
+      <div className="w-12 h-12 bg-discord-green-bright/20 rounded-full flex items-center justify-center text-discord-green-bright font-bold text-lg mb-2 cursor-pointer hover:bg-discord-green-bright/30 hover:rounded-2xl hover:shadow-glow-green-sm transition-all duration-200">
         E$
       </div>
       
-      <div className="w-12 h-px bg-green-500/50"></div>
+      <div className="w-8 h-px bg-discord-text-dark"></div>
       
       {/* Servers */}
       {servers.map((server) => (
         <div
           key={server.id}
           onClick={() => handleServerClick(server.id)}
-          className={`w-12 h-12 border border-green-500/50 flex items-center justify-center text-xl cursor-pointer transition-all
+          className={`w-12 h-12 flex items-center justify-center text-xl cursor-pointer transition-all duration-200
             ${selectedServer === server.id 
-              ? 'bg-green-500/20 text-green-500 shadow-[0_0_15px_rgba(0,255,65,0.5)]' 
-              : 'bg-black hover:bg-green-500/10 hover:border-green-500 text-green-500/70 hover:text-green-500'
+              ? 'bg-discord-green-bright/20 text-discord-green-bright rounded-2xl' 
+              : 'bg-discord-secondary text-discord-text-muted hover:bg-discord-green-bright/10 hover:text-discord-green-bright hover:shadow-glow-green-sm rounded-full hover:rounded-2xl'
             }`}
           title={server.name}
         >
@@ -48,7 +48,7 @@ const ServerList = ({ onServerClick }) => {
       ))}
       
       {/* Add new */}
-      <div className="w-12 h-12 border border-green-500/30 border-dashed flex items-center justify-center text-green-500/50 hover:text-green-500 hover:border-green-500 cursor-pointer transition-all">
+      <div className="w-12 h-12 bg-discord-secondary rounded-full flex items-center justify-center text-discord-green-bright text-2xl cursor-pointer hover:bg-discord-green-bright/10 hover:rounded-2xl hover:shadow-glow-green-sm transition-all duration-200">
         +
       </div>
     </div>

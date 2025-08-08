@@ -1,4 +1,3 @@
-// tailwind.config.js - Configurația pentru tema terminal/hacker
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -6,68 +5,101 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Paleta Terminal/Matrix style
-        terminal: {
-          black: '#0a0a0a',      // Background principal
-          darkgray: '#1a1a1a',   // Background secundar
-          gray: '#2d2d2d',       // Borders, separators
-          green: '#00ff41',      // Verde neon principal
-          darkgreen: '#00cc33',  // Verde mai închis pentru hover
-          lightgreen: '#7dff9a', // Verde deschis pentru accente
-          red: '#ff3333',        // Erori, warnings
-          yellow: '#ffcc00',     // Highlights, badges
-          cyan: '#00ffff',       // Links, info
-          white: '#e0e0e0',      // Text principal
-          dimwhite: '#a0a0a0',   // Text secundar
-        }
+        // Ultra-dark hacker theme with matrix green
+        'discord-dark': '#000000', // Pure black background
+        'discord-sidebar': '#0a0a0a', // Almost black sidebar
+        'discord-channels': '#111111', // Very dark channel sidebar
+        'discord-main': '#0c0c0c', // Main content - slightly lighter black
+        'discord-secondary': '#1a1a1a', // Secondary elements
+        'discord-hover': '#00ff41', // Matrix bright green hover
+        'discord-green': '#00ff41', // Matrix bright green
+        'discord-green-dim': '#00cc33', // Dimmer matrix green
+        'discord-green-bright': '#39ff14', // Ultra bright neon green
+        'discord-green-glow': '#00ff41', // Green for glow effects
+        'discord-text': '#00ff41', // Matrix green text
+        'discord-text-muted': '#009900', // Muted green text
+        'discord-text-dark': '#006600', // Dark green text
+        'discord-text-white': '#ffffff', // Pure white for contrast
+        'discord-border': '#333333', // Dark border
+        'discord-success': '#00ff41', // Success green
+        'discord-accent': '#00ffff', // Cyan accent
+        'discord-terminal': '#00ff00', // Terminal green
+        'discord-matrix': '#003300', // Matrix background tint
       },
       fontFamily: {
-        'mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
-        'terminal': ['Source Code Pro', 'monospace'],
+        'mono': ['"Courier New"', 'Courier', 'monospace'],
+        'matrix': ['"Courier New"', 'Courier', 'monospace'],
       },
-      fontSize: {
-        'terminal': '13px',
-      },
-      backgroundImage: {
-        'matrix-rain': "url('/src/assets/matrix-bg.gif')", // optional, dacă vrei efect Matrix
-        'scan-lines': 'repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03), rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 2px)',
+      boxShadow: {
+        'glow-green': '0 0 5px rgba(0, 255, 65, 0.3), 0 0 10px rgba(0, 255, 65, 0.2), 0 0 15px rgba(0, 255, 65, 0.1)',
+        'glow-green-sm': '0 0 3px rgba(0, 255, 65, 0.4), 0 0 6px rgba(0, 255, 65, 0.2)',
+        'glow-cyan': '0 0 5px rgba(0, 255, 255, 0.3), 0 0 10px rgba(0, 255, 255, 0.2)',
+        'matrix': 'inset 0 0 10px rgba(0, 51, 0, 0.3)',
       },
       animation: {
-        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
-        'terminal-blink': 'terminalBlink 1s infinite',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'glitch': 'glitch 0.3s ease-in-out',
+        'pulse-green': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'flicker': 'flicker 3s linear infinite',
+        'matrix-rain': 'matrix-rain 20s linear infinite',
+        'typing': 'typing 1s steps(var(--typing-steps, 15), end)',
+        'blink': 'blink 1s step-end infinite',
       },
       keyframes: {
-        pulseGlow: {
-          '0%, 100%': { 
-            opacity: '1',
-            filter: 'drop-shadow(0 0 3px #00ff41)',
-          },
-          '50%': { 
-            opacity: '0.8',
-            filter: 'drop-shadow(0 0 8px #00ff41)',
-          },
+        flicker: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8' },
         },
-        terminalBlink: {
+        'matrix-rain': {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100vh)' },
+        },
+        typing: {
+          '0%': { width: '0' },
+          '100%': { width: 'var(--typing-width, 15ch)' },
+        },
+        blink: {
           '0%, 50%': { opacity: '1' },
           '51%, 100%': { opacity: '0' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        glitch: {
-          '0%, 100%': { transform: 'translate(0)' },
-          '33%': { transform: 'translate(-2px, -2px)' },
-          '66%': { transform: 'translate(2px, 2px)' },
-        }
-      },
-      boxShadow: {
-        'terminal': '0 0 10px rgba(0, 255, 65, 0.5)',
-        'terminal-hover': '0 0 20px rgba(0, 255, 65, 0.8)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-thin': {
+          'scrollbar-width': 'thin',
+          'scrollbar-color': '#00ff41 #1a1a1a',
+          'overflow-y': 'scroll !important',
+        },
+        '.scrollbar-thin::-webkit-scrollbar': {
+          width: '12px !important',
+          display: 'block !important',
+        },
+        '.scrollbar-thin::-webkit-scrollbar-track': {
+          background: '#1a1a1a !important',
+          'border-radius': '6px',
+          display: 'block !important',
+        },
+        '.scrollbar-thin::-webkit-scrollbar-thumb': {
+          background: '#00ff41 !important',
+          'border-radius': '6px',
+          'min-height': '20px !important',
+          display: 'block !important',
+        },
+        '.scrollbar-thin::-webkit-scrollbar-thumb:hover': {
+          background: '#39ff14 !important',
+        },
+        '.scrollbar-thin::-webkit-scrollbar-corner': {
+          background: '#1a1a1a !important',
+        },
+        '.scrollbar-hidden': {
+          'scrollbar-width': 'none',
+          '-ms-overflow-style': 'none',
+        },
+        '.scrollbar-hidden::-webkit-scrollbar': {
+          display: 'none',
+        },
+      })
+    }
+  ],
 }

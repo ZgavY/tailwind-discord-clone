@@ -1,141 +1,244 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ServerList from './components/ServerList';
 import ChannelSidebar from './components/ChannelSidebar';
 import MainContent from './components/MainContent';
 import MembersList from './components/MembersList';
-import MobileNav from './components/MobileNav';
+import InstallPrompt from './components/InstallPrompt';
+import { usePWA } from './hooks/usePWA';
 
 function App() {
-  const [showServers, setShowServers] = useState(false);
-  const [showChannels, setShowChannels] = useState(false);
-  const [showMembers, setShowMembers] = useState(false);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const [selectedChannel, setSelectedChannel] = useState('welcome');
+  const { shouldShowInstallPrompt } = usePWA();
 
-  // Minimum swipe distance (in px)
-  const minSwipeDistance = 50;
+  // Funcția pentru formatarea timestamp-urilor ca în Discord
+  const formatTimestamp = (date) => {
+    const now = new Date();
+    const diff = now - date;
+    const diffInSeconds = Math.floor(diff / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
 
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isRightSwipe && window.innerWidth < 768) {
-      // Swipe right - open servers/channels
-      if (!showServers && !showChannels && !showMembers) {
-        setShowServers(true);
-      } else if (showMembers) {
-        setShowMembers(false);
-      }
+    if (diffInMinutes < 1) return 'Acum';
+    if (diffInMinutes < 60) return `Acum ${diffInMinutes} min`;
+    if (diffInHours < 24) {
+      if (diffInHours === 1) return `Acum o oră`;
+      return `Acum ${diffInHours} ore`;
+    }
+    if (diffInDays === 1) return `Ieri la ${date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}`;
+    if (diffInDays < 7) return `Acum ${diffInDays} zile`;
+    if (diffInDays < 30) {
+      const weeks = Math.floor(diffInDays / 7);
+      return weeks === 1 ? 'Acum o săptămână' : `Acum ${weeks} săptămâni`;
     }
     
-    if (isLeftSwipe && window.innerWidth < 768) {
-      // Swipe left - open members or close servers
-      if (!showServers && !showChannels && !showMembers) {
-        setShowMembers(true);
-      } else if (showServers) {
-        setShowServers(false);
-      } else if (showChannels) {
-        setShowChannels(false);
+    // Pentru mai mult de o lună, arată data
+    return date.toLocaleDateString('ro-RO', { 
+      day: 'numeric', 
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  const [messages, setMessages] = useState({
+    welcome: [
+      {
+        id: 1,
+        author: 'E-MONEY_SYSTEM',
+        role: 'admin',
+        timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 zile în urmă
+        content: 'Bun venit în E-Money Society! 🚀 Aici înveți să faci bani în era digitală.',
+      },
+      {
+        id: 2,
+        author: 'root@emoney',
+        role: 'admin',
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000), // Ieri cu 45 min în urmă
+        content: 'Sistemul a fost inițializat. Toate modulele sunt ONLINE. Să începem!',
+      },
+      {
+        id: 3,
+        author: 'TradingBot',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 ore în urmă
+        content: 'Daily market analysis: BTC +2.3%, ETH +1.8%. Bullish momentum continues.',
+      },
+      {
+        id: 4,
+        author: 'CryptoNewbie',
+        role: 'user',
+        timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 min în urmă
+        content: 'Salut! Sunt nou aici. Mulțumesc pentru primire! 🙏',
       }
+    ],
+    rules: [
+      {
+        id: 1,
+        author: 'E-MONEY_SYSTEM',
+        role: 'admin',
+        timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 zile în urmă
+        content: '📋 REGULILE E-MONEY SOCIETY:\n1. Respect pentru toți membrii\n2. Nu spam în chat\n3. Conținut educațional de calitate\n4. Ajută-ți colegii să crească',
+      },
+      {
+        id: 2,
+        author: 'ModeratorPro',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 zile în urmă
+        content: 'Reminder: Toate întrebările despre trading se pun în #basics sau #advanced. Mulțumim!',
+      }
+    ],
+    basics: [
+      {
+        id: 1,
+        author: 'TradingMaster',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 zile în urmă
+        content: 'Lecția 1: Fundamentele investițiilor. Să înțelegem ce înseamnă cu adevărat să investești.',
+      },
+      {
+        id: 2,
+        author: 'InvestorPro',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 - 6 * 60 * 60 * 1000), // Ieri cu 6 ore în urmă
+        content: 'Lecția 2: Risk Management - cel mai important aspect al trading-ului. Nu riscați niciodată mai mult de 2% pe trade.',
+      },
+      {
+        id: 3,
+        author: 'StudentTrader',
+        role: 'user',
+        timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 min în urmă
+        content: 'Mulțumesc pentru lecție! Foarte utilă explicația despre diversificare.',
+      }
+    ],
+    general: [
+      {
+        id: 1,
+        author: 'CryptoGuru',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 săptămână în urmă
+        content: 'Ce părere aveți despre piața actuală? Bitcoin pare să se consolideze.',
+      },
+      {
+        id: 2,
+        author: 'MarketAnalyst',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 zile în urmă
+        content: 'Tesla a anunțat că acceptă din nou Bitcoin. Impact pozitiv pe termen scurt.',
+      },
+      {
+        id: 3,
+        author: 'DayTrader99',
+        role: 'user',
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 - 4.5 * 60 * 60 * 1000), // Ieri seara
+        content: 'Am făcut +15% săptămâna asta folosind strategiile învățate aici. Thanks team! 💪',
+      },
+      {
+        id: 4,
+        author: 'BeginnerLuck',
+        role: 'user',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 ore în urmă
+        content: 'Întrebare: e bun momentul să intru în ETH acum sau să mai aștept?',
+      },
+      {
+        id: 5,
+        author: 'RiskManager',
+        role: 'mod',
+        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 min în urmă
+        content: '@BeginnerLuck Nu dăm sfaturi financiare directe. Studiază analiza tehnică din #basics mai întâi! 📚',
+      }
+    ]
+  });
+
+  const handleChannelChange = (channelId) => {
+    setSelectedChannel(channelId);
+  };
+
+  const handleSendMessage = (messageData, operation = false) => {
+    if (operation === 'remove') {
+      // Remove message
+      setMessages(prev => ({
+        ...prev,
+        [selectedChannel]: (prev[selectedChannel] || []).filter(msg => msg.id !== messageData.id)
+      }));
+    } else if (operation === true) {
+      // Update existing message
+      setMessages(prev => ({
+        ...prev,
+        [selectedChannel]: (prev[selectedChannel] || []).map(msg => 
+          msg.id === messageData.id ? messageData : msg
+        )
+      }));
+    } else {
+      // Add new message
+      setMessages(prev => ({
+        ...prev,
+        [selectedChannel]: [...(prev[selectedChannel] || []), messageData]
+      }));
     }
   };
 
-  // Close all mobile menus on desktop resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setShowServers(false);
-        setShowChannels(false);
-        setShowMembers(false);
-      }
-    };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+
+  // Dacă e pe mobil și nu e PWA, arată install prompt
+  if (shouldShowInstallPrompt) {
+    return <InstallPrompt />;
+  }
 
   return (
-    <div 
-      className="flex h-screen bg-black text-green-500 font-mono text-xs overflow-hidden relative"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* Mobile Navigation Bar */}
-      <div className="md:hidden">
-        <MobileNav 
-          onMenuClick={() => setShowServers(true)}
-          onMembersClick={() => setShowMembers(!showMembers)}
-          currentChannel="welcome"
+    <div className="bg-discord-dark text-discord-text font-mono w-full h-screen flex relative overflow-hidden" style={{overscrollBehavior: 'none'}}>
+      {/* Matrix background effect */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-discord-matrix to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_#003300_0%,_transparent_50%)]"></div>
+      </div>
+      
+      {/* Mobile Layout */}
+      <div className="md:hidden w-full flex flex-col h-screen overflow-hidden" style={{overscrollBehavior: 'none'}}>
+        {/* Mobile Header */}
+        <header className="bg-discord-main border-b border-discord-border px-4 py-3 flex items-center justify-between pt-3 pwa-safe-top pwa-safe-left pwa-safe-right">
+          
+          {/* Left - Channel name */}
+          <div className="flex items-center">
+            <span className="text-discord-green text-lg mr-2">#</span>
+            <h1 className="text-discord-green font-semibold text-base">
+              {selectedChannel}
+            </h1>
+          </div>
+          
+          {/* Right - Status */}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-green-500 text-xs font-medium">Online</span>
+            </div>
+            <span className="text-gray-400 text-xs">247 membri</span>
+          </div>
+          
+        </header>
+        
+        <MainContent 
+          selectedChannel={selectedChannel}
+          messages={messages[selectedChannel] || []}
+          onSendMessage={handleSendMessage}
+          formatTimestamp={formatTimestamp}
         />
       </div>
 
-      {/* Server List */}
-      <div className={`
-        fixed md:relative z-30 h-full
-        transition-transform duration-300 ease-in-out
-        ${showServers ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        <ServerList onServerClick={() => {
-          setShowServers(false);
-          setShowChannels(true);
-        }} />
-      </div>
-
-      {/* Channel Sidebar */}
-      <div className={`
-        fixed md:relative z-20 h-full
-        transition-transform duration-300 ease-in-out
-        ${showChannels ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        <ChannelSidebar onChannelClick={() => setShowChannels(false)} />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col w-full">
-        <MainContent />
-      </div>
-
-      {/* Members List */}
-      <div className={`
-        fixed md:relative right-0 z-20 h-full
-        transition-transform duration-300 ease-in-out
-        ${showMembers ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-      `}>
+      {/* Desktop Layout */}
+      <div className="hidden md:flex w-full">
+        <ServerList />
+        <ChannelSidebar 
+          selectedChannel={selectedChannel}
+          onChannelChange={handleChannelChange}
+        />
+        <MainContent 
+          selectedChannel={selectedChannel}
+          messages={messages[selectedChannel] || []}
+          onSendMessage={handleSendMessage}
+          formatTimestamp={formatTimestamp}
+        />
         <MembersList />
       </div>
-
-      {/* Overlay pentru mobile */}
-      {(showServers || showChannels || showMembers) && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-10 md:hidden"
-          onClick={() => {
-            setShowServers(false);
-            setShowChannels(false);
-            setShowMembers(false);
-          }}
-        />
-      )}
-
-      {/* Swipe hints pentru mobile */}
-      {window.innerWidth < 768 && !showServers && !showChannels && !showMembers && (
-        <>
-          <div className="fixed left-0 top-1/2 -translate-y-1/2 w-1 h-20 bg-gradient-to-b from-transparent via-green-500 to-transparent opacity-30 animate-pulse md:hidden" />
-          <div className="fixed right-0 top-1/2 -translate-y-1/2 w-1 h-20 bg-gradient-to-b from-transparent via-green-500 to-transparent opacity-30 animate-pulse md:hidden" />
-        </>
-      )}
     </div>
   );
 }

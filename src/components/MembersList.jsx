@@ -4,7 +4,7 @@ const MembersList = () => {
   const onlineUsers = [
     { 
       category: 'ROOT—3', 
-      roleColor: 'text-red-500',
+      roleColor: 'text-red-400',
       users: [
         { name: 'MasterTrader', status: 'online' },
         { name: 'CryptoGuru', status: 'online' },
@@ -13,7 +13,7 @@ const MembersList = () => {
     },
     { 
       category: 'MODS—5', 
-      roleColor: 'text-yellow-500',
+      roleColor: 'text-discord-green-bright',
       users: [
         { name: 'TechAnalyst', status: 'online' },
         { name: 'ChartMaster', status: 'online' },
@@ -24,7 +24,7 @@ const MembersList = () => {
     },
     { 
       category: 'VIP—47', 
-      roleColor: 'text-cyan-500',
+      roleColor: 'text-discord-accent',
       users: [
         { name: 'ProfitHacker', status: 'online' },
         { name: 'MoneyMachine', status: 'online' },
@@ -35,7 +35,7 @@ const MembersList = () => {
     },
     { 
       category: 'USERS—1,284', 
-      roleColor: 'text-green-500',
+      roleColor: 'text-discord-green',
       users: [
         { name: 'Beginner123', status: 'online' },
         { name: 'LearningTrader', status: 'online' },
@@ -45,18 +45,18 @@ const MembersList = () => {
   ];
 
   const statusIndicators = {
-    online: 'bg-green-500',
-    away: 'bg-yellow-500',
-    dnd: 'bg-red-500',
-    offline: 'bg-gray-500'
+    online: 'bg-discord-success',
+    away: 'bg-yellow-400',
+    dnd: 'bg-red-400',
+    offline: 'bg-discord-text-dark'
   };
 
   return (
-    <div className="w-60 bg-gray-900/50 border-l border-green-500/30 p-4 h-full overflow-y-auto">
+    <div className="w-60 bg-discord-channels border-l border-discord-border p-4 h-full overflow-y-auto shadow-matrix">
       {/* Pe mobil, adaugă spacing pentru nav bar */}
       <div className="h-12 md:hidden" />
       
-      <div className="text-green-500/70 text-xs mb-3 uppercase">
+      <div className="text-discord-green text-xs font-semibold mb-3 uppercase">
         [ONLINE - 1,337]
       </div>
       
@@ -68,17 +68,17 @@ const MembersList = () => {
             </div>
             <div className="space-y-1">
               {group.users.map((user, userIdx) => (
-                <div key={userIdx} className="flex items-center text-green-500/70 text-xs hover:text-green-500 cursor-pointer group">
+                <div key={userIdx} className="flex items-center text-discord-text-muted text-sm hover:text-discord-green cursor-pointer group px-2 py-1 rounded hover:bg-discord-hover/30 transition-all">
                   <div className={`w-2 h-2 ${statusIndicators[user.status]} rounded-full mr-2 ${
                     user.status === 'online' ? 'animate-pulse' : ''
                   }`}></div>
-                  <span className="truncate">
+                  <span className="truncate hover:text-discord-green transition-all">
                     <span className={group.roleColor}>{group.roleColor.includes('red') ? '#' : '$'}</span> {user.name}
                   </span>
                 </div>
               ))}
               {group.category.includes('1,284') && (
-                <div className="text-green-500/50 text-xs mt-2 pl-4">
+                <div className="text-discord-text-muted text-xs mt-2 pl-4">
                   ... and 1,276 more
                 </div>
               )}
@@ -88,7 +88,7 @@ const MembersList = () => {
       </div>
 
       {/* Mobile close hint */}
-      <div className="md:hidden mt-8 text-center text-green-500/30 text-xs">
+      <div className="md:hidden mt-8 text-center text-discord-text-muted text-xs">
         Tap outside to close
       </div>
     </div>
