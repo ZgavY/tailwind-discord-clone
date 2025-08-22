@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { MantineProvider, createTheme } from '@mantine/core';
+import '@mantine/core/styles.css';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ServerList from './components/ServerList';
 import ChannelSidebar from './components/ChannelSidebar';
 import MainContent from './components/MainContent';
 import MembersList from './components/MembersList';
 import MobileNotSupported from './components/MobileNotSupported';
+import UserSwitcher from './components/UserSwitcher';
+import AccessDenied from './components/AccessDenied';
+import { canUserAccessChannel } from './utils/permissions';
 
-function App() {
+const AppContent = () => {
   const [selectedChannel, setSelectedChannel] = useState('welcome');
   const [isSending, setIsSending] = useState(false);
+  const [deniedChannel, setDeniedChannel] = useState(null);
+  const { currentUser } = useAuth();
   
   // Detect mobile device (not just window size)
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
@@ -157,6 +165,11 @@ function App() {
   });
 
   const handleChannelChange = (channelId) => {
+    // Check permissions before changing channel
+    if (!canUserAccessChannel(currentUser, channelId)) {
+      setDeniedChannel(channelId);
+      return;
+    }
     setSelectedChannel(channelId);
   };
 
@@ -240,33 +253,75 @@ function App() {
     return <MobileNotSupported />;
   }
 
-  return (
-    <div className="bg-discord-dark text-discord-text font-mono w-full flex relative overflow-hidden" style={{height: '100svh', maxHeight: '100svh'}}>
-      {/* Matrix background effect - desktop only */}
-      <div className="hidden md:block absolute inset-0 opacity-10 pointer-events-none z-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-discord-matrix to-transparent"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_#003300_0%,_transparent_50%)]"></div>
-      </div>
-      
+  const theme = createTheme({
+    colorScheme: 'dark',
+    colors: {
+      discord: [
+        '#39ff14',
+        '#32e60f', 
+        '#2bcc0a',
+        '#25b308',
+        '#1e9906',
+        '#178004',
+        '#116602',
+        '#0a4d01',
+        '#083300',
+        '#061a00'
+      ]
+    },
+    primaryColor: 'discord',
+    defaultGradient: { from: 'discord.5', to: 'discord.3', deg: 135 },
+    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
+  });
 
-      {/* Desktop Layout */}
-      <div className="flex w-full">
-        <ServerList />
-        <ChannelSidebar 
-          selectedChannel={selectedChannel}
-          onChannelChange={handleChannelChange}
-        />
-        <MainContent 
-          selectedChannel={selectedChannel}
-          messages={messages[selectedChannel] || []}
-          onSendMessage={handleSendMessage}
-          formatTimestamp={formatTimestamp}
-          onRetryMessage={handleRetryMessage}
-          isSending={isSending}
-        />
-        <MembersList />
-      </div>
-    </div>
+  return (
+    <MantineProvider theme={theme}>
+        <div className="bg-discord-dark text-discord-text font-mono w-full flex relative overflow-hidden" style={{height: '100svh', maxHeight: '100svh'}}>
+        {/* Matrix background effect - desktop only */}
+        <div className="hidden md:block absolute inset-0 opacity-10 pointer-events-none z-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-discord-matrix to-transparent"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_#003300_0%,_transparent_50%)]"></div>
+        </div>
+        
+
+        {/* Desktop Layout */}
+        <div className="flex w-full">
+          <ServerList />
+          <ChannelSidebar 
+            selectedChannel={selectedChannel}
+            onChannelChange={handleChannelChange}
+          />
+          <MainContent 
+            selectedChannel={selectedChannel}
+            messages={messages[selectedChannel] || []}
+            onSendMessage={handleSendMessage}
+            formatTimestamp={formatTimestamp}
+            onRetryMessage={handleRetryMessage}
+            isSending={isSending}
+          />
+          <MembersList />
+        </div>
+        
+        {/* Development User Switcher */}
+        <UserSwitcher />
+        
+        {/* Access Denied Modal */}
+        {deniedChannel && (
+          <AccessDenied 
+            channelId={deniedChannel} 
+            onClose={() => setDeniedChannel(null)} 
+          />
+        )}
+        </div>
+    </MantineProvider>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

@@ -1,171 +1,230 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
+import StatusIndicator from './StatusIndicator';
+import UserProfile from './UserProfile';
+import CoursesView from './CoursesView';
+import { useAuth } from '../contexts/AuthContext';
 
 const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp, onRetryMessage, isSending = false }) => {
+  const messagesContainerRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [justChangedChannel, setJustChangedChannel] = useState(false);
-  const [isUserInteracting, setIsUserInteracting] = useState(false);
-  
-  const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const ignoreNextScrollEvent = useRef(false);
+  const { currentUser, mockUsers } = useAuth();
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [, setShowCursor] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const typingTimeoutRef = useRef(null);
+  const messagesAreaRef = useRef(null);
+  const previousAreaHeight = useRef(0);
+  const resizeObserverRef = useRef(null);
 
-  // Auto-scroll la mesajele noi
-  const scrollToBottom = useCallback((instant = false) => {
+  // Function să găsim user data pentru un username
+  const getUserByUsername = (username) => {
+    return mockUsers.find(user => user.username === username) || {
+      username,
+      displayName: username,
+      avatar: username.charAt(0).toUpperCase(),
+      color: '#00ff41',
+      status: 'offline',
+      role: 'member'
+    };
+  };
+
+  // Simple scroll to bottom function
+  const scrollToBottom = () => {
     if (messagesContainerRef.current) {
-      const container = messagesContainerRef.current;
-      
-      
-      if (instant) {
-        container.scrollTop = container.scrollHeight;
-      } else {
-        // Smooth scroll cu requestAnimationFrame
-        requestAnimationFrame(() => {
-          container.scrollTop = container.scrollHeight;
-        });
-      }
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
-  }, []);
+  };
 
-  // Forțează scrollbar vizibil prin CSS direct
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      const element = messagesContainerRef.current;
-      const style = document.createElement('style');
-      style.textContent = `
-        .force-scrollbar::-webkit-scrollbar {
-          width: 12px !important;
-          display: block !important;
-        }
-        .force-scrollbar::-webkit-scrollbar-track {
-          background: #1a1a1a !important;
-        }
-        .force-scrollbar::-webkit-scrollbar-thumb {
-          background: #00ff41 !important;
-          min-height: 30px !important;
-        }
-        .force-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #39ff14 !important;
-        }
-      `;
-      document.head.appendChild(style);
-      element.classList.add('force-scrollbar');
-      
-      return () => {
-        document.head.removeChild(style);
-      };
-    }
-  }, []);
-
-  // Check dacă user-ul e la bottom și dacă să arăt butonul - cu throttling pe mobile
+  // Check if user is at bottom
   const handleScroll = useCallback(() => {
     if (messagesContainerRef.current) {
-      // Ignore scroll events triggered by programmatic scroll
-      if (ignoreNextScrollEvent.current) {
-        ignoreNextScrollEvent.current = false;
-        return;
-      }
-      
       const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
       const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+      const tolerance = 50; // 50px tolerance
       
-      const tolerance = 10;
-      
-      
-      // Scroll button update
-      setShowScrollButton(distanceFromBottom > 200);
-      
-      // Desktop-only logic
       setIsAtBottom(distanceFromBottom <= tolerance);
+      setShowScrollButton(distanceFromBottom > 200); // Show button when 200px+ from bottom
     }
   }, []);
 
-  // Auto-scroll când apar mesaje noi 
+  // Auto-scroll logic
   useEffect(() => {
-    
     if (messages.length > 0) {
-      // Skip auto-scroll la schimbarea canalului - deja am facut jump instant
-      if (justChangedChannel) {
-        setJustChangedChannel(false);
-        return;
-      }
-      
       const lastMessage = messages[messages.length - 1];
-      const isMyMessage = lastMessage.author === 'root@emoney';
+      const isMyMessage = lastMessage.author === currentUser?.username;
       
-      // Pentru mesajele MELE - ÎNTOTDEAUNA autoscroll (ca Discord)
-      // DAR nu pentru typing în input - doar pentru mesaje noi trimise
-      if (isMyMessage && lastMessage.status !== undefined) { // Doar mesaje cu status (trimise efectiv)
-        setTimeout(() => {
-          scrollToBottom(false);
-        }, 10);
-      }
-      // Pentru mesajele altora - doar dacă sunt la bottom
-      else if (!isMyMessage && isAtBottom && !isUserInteracting) {
-        setTimeout(() => {
-          scrollToBottom(false); // smooth scroll pe desktop
-        }, 10);
+      if (isMyMessage && lastMessage.status === 'sending') {
+        // Always scroll when sending a new message
+        scrollToBottom();
+      } else if (isMyMessage && (lastMessage.status === 'sent' || lastMessage.status === 'failed') && isAtBottom) {
+        // Scroll for my message status updates only if already at bottom
+        scrollToBottom();
+      } else if (!isMyMessage && isAtBottom) {
+        // Scroll for others' messages only if I'm already at bottom
+        scrollToBottom();
       }
     }
-  }, [messages, isAtBottom, scrollToBottom, justChangedChannel, isUserInteracting]);
+  }, [messages, isAtBottom, currentUser?.username]);
 
-  // Reset scroll la schimbarea canalului
+  // Scroll to bottom when changing channels
   useEffect(() => {
+    scrollToBottom();
     setIsAtBottom(true);
     setShowScrollButton(false);
-    setJustChangedChannel(true);
-    
-    // INSTANT jump to bottom
-    if (messagesContainerRef.current) {
-      const container = messagesContainerRef.current;
-      container.style.scrollBehavior = 'auto'; // Disable smooth scroll
-      container.scrollTop = container.scrollHeight;
-      // Re-enable smooth scroll after
-      setTimeout(() => {
-        container.style.scrollBehavior = 'smooth';
-      }, 1);
-    }
   }, [selectedChannel]);
 
-  // DISABLED - Mobile keyboard management removed for desktop focus
+  // Epic terminal typing animation
+  useEffect(() => {
+    const targetText = selectedChannel.toUpperCase();
+    
+    // Clear any existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Start fresh
+    setIsTyping(true);
+    setShowCursor(true);
+    setDisplayedText('');
+    
+    // Simulate typing with random delays for authentic feel
+    const typeChar = (index) => {
+      if (index < targetText.length) {
+        setDisplayedText(targetText.slice(0, index + 1));
+        
+        // Random delay between 40-120ms for natural typing rhythm
+        const delay = Math.random() * 80 + 40;
+        
+        typingTimeoutRef.current = setTimeout(() => {
+          typeChar(index + 1);
+        }, delay);
+      } else {
+        // Typing finished
+        setIsTyping(false);
+        
+        // Brief pause before cursor starts blinking
+        setTimeout(() => {
+          setShowCursor(true);
+        }, 200);
+      }
+    };
+    
+    // Start typing after brief initial delay
+    typingTimeoutRef.current = setTimeout(() => {
+      typeChar(0);
+    }, 100);
+    
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [selectedChannel]);
 
-  // REMOVED - Input expansion handling moved to direct approach
+  // Monitor messages area height and maintain scroll position for ANY resize
+  useEffect(() => {
+    const messagesArea = messagesAreaRef.current;
+    if (!messagesArea) return;
+
+    // Only create observer if it doesn't exist
+    if (!resizeObserverRef.current) {
+      resizeObserverRef.current = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        const currentHeight = entry.contentRect.height;
+        const previousHeight = previousAreaHeight.current;
+        
+        const heightDifference = currentHeight - previousHeight;
+        
+        // Adjust scroll for ANY height change to maintain visible content
+        if (heightDifference !== 0 && messagesContainerRef.current && previousHeight > 0) {
+          const container = messagesContainerRef.current;
+          const oldScrollTop = container.scrollTop;
+          
+          // When area shrinks (textarea expands): scroll down to maintain content
+          // When area expands (textarea shrinks): scroll up to maintain content  
+          const newScrollTop = oldScrollTop - heightDifference;
+          container.scrollTop = Math.max(0, newScrollTop); // Don't scroll below 0
+        }
+        
+        previousAreaHeight.current = currentHeight;
+      });
+    }
+
+    // Always re-observe (in case ref changed)
+    resizeObserverRef.current.observe(messagesArea);
+    
+    // Update height reference
+    if (previousAreaHeight.current === 0) {
+      previousAreaHeight.current = messagesArea.offsetHeight;
+    }
+
+    return () => {
+      if (resizeObserverRef.current && messagesArea) {
+        resizeObserverRef.current.unobserve(messagesArea);
+      }
+    };
+  }); // Run on every render to ensure observation
 
   const roleColors = {
     admin: 'text-red-400',
-    mod: 'text-discord-green-bright',
-    user: 'text-discord-green',
+    mentor: 'text-discord-green-bright',
+    member: 'text-discord-green',
+    mod: 'text-discord-green-bright', // Legacy support
+    user: 'text-discord-green', // Legacy support
   };
 
   return (
-    <div className="flex flex-col z-20 bg-discord-main relative w-full overflow-hidden" style={{ flex: '1 1 0px', minHeight: 0 }}>
+    <>
+      <style>{`
+        @keyframes cursor-blink {
+          0%, 45% { opacity: 1; }
+          46%, 100% { opacity: 0; }
+        }
+        .cursor {
+          color: #00ff41;
+          text-shadow: 0 0 5px #00ff41;
+        }
+      `}</style>
+      <div className="flex flex-col z-20 bg-discord-main relative w-full overflow-hidden" style={{ flex: '1 1 0px', minHeight: 0 }}>
       {/* Header */}
       <div className="flex h-12 border-b border-discord-border items-center px-4 bg-discord-main shadow-sm">
         <span className="text-discord-green mr-2">#</span>
         <div className="text-discord-green inline-flex items-center text-sm">
-          <span className="overflow-hidden whitespace-nowrap">
-            {selectedChannel.toUpperCase()}
+          <span className="overflow-hidden whitespace-nowrap font-mono tracking-wider">
+            {displayedText}
+            <span 
+              className="cursor"
+              style={{ 
+                animation: isTyping ? 'none' : 'cursor-blink 1.2s infinite',
+                opacity: isTyping ? 1 : undefined
+              }}
+            >
+              _
+            </span>
           </span>
         </div>
       </div>
 
 
       {/* Messages Area */}
-      <div className="flex-1 relative overflow-hidden">
+      <div ref={messagesAreaRef} className="flex-1 relative overflow-hidden">
         <div 
           ref={messagesContainerRef}
           onScroll={handleScroll}
           data-messages-container
-          className="absolute inset-0 p-4 pt-4 pb-1 bg-discord-main scrollbar-hidden overflow-y-scroll"
+          className="absolute inset-0 p-4 pt-4 pb-1 bg-discord-main overflow-y-scroll"
           style={{ 
-            paddingBottom: '0.5rem',
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehavior: 'contain',
-            scrollBehavior: 'auto' // Force disable smooth scroll
+            paddingBottom: '0.5rem'
           }}
         >
+          {/* Courses View pentru basics channel */}
+          {selectedChannel === 'basics' ? (
+            <CoursesView selectedChannel={selectedChannel} />
+          ) : (
           <div className="space-y-4 max-w-4xl mx-auto">
             {/* Welcome Art */}
             {selectedChannel === 'welcome' && (
@@ -186,7 +245,9 @@ const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp
 
             {/* Messages */}
             <div className="space-y-4">
-              {messages.map((msg) => (
+              {messages.map((msg) => {
+                const userData = getUserByUsername(msg.author);
+                return (
                 <div 
                   key={msg.id} 
                   className={`flex space-x-3 px-2 py-1 -mx-2 rounded-md transition-all duration-200 group ${
@@ -197,23 +258,31 @@ const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp
                       : 'hover:bg-discord-secondary/30'
                   }`}
                 >
-                  {/* Avatar */}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all duration-200 shadow-lg relative ${
-                    msg.status === 'failed' 
-                      ? 'bg-gradient-to-br from-red-500/80 to-red-600/80 text-red-100' 
-                      : msg.status === 'sending'
-                      ? 'bg-gradient-to-br from-discord-green-dim/60 to-discord-green-bright/60 text-discord-dark/80'
-                      : 'bg-gradient-to-br from-discord-green-dim to-discord-green-bright text-discord-dark group-hover:shadow-glow-green-sm'
-                  }`}>
-                    {msg.author.charAt(0)}
+                  {/* Avatar with Status */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setSelectedProfile(userData.id || userData.username)}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all duration-200 shadow-lg relative cursor-pointer hover:scale-105 ${
+                        msg.status === 'failed' 
+                          ? 'bg-gradient-to-br from-red-500/80 to-red-600/80 text-red-100' 
+                          : msg.status === 'sending'
+                          ? 'bg-gradient-to-br from-discord-green-dim/60 to-discord-green-bright/60 text-discord-dark/80'
+                          : 'bg-gradient-to-br from-discord-green-dim to-discord-green-bright text-discord-dark group-hover:shadow-glow-green-sm'
+                      }`} style={{ backgroundColor: msg.color || userData.color }}
+                    >
+                      {msg.avatar || userData.avatar}
+                    </button>
+                    <div className="absolute -bottom-0.5 -right-0.5">
+                      <StatusIndicator status={userData.status} size="xs" />
+                    </div>
                   </div>
                   
                   {/* Message Content */}
                   <div className="flex-1 min-w-0">
                     {/* Header - User and timestamp */}
                     <div className="flex items-baseline space-x-2 mb-1">
-                      <span className={`${roleColors[msg.role]} font-bold text-sm hover:underline cursor-pointer transition-all`}>
-                        {msg.author}
+                      <span className={`${roleColors[msg.role] || 'text-discord-green'} font-bold text-sm hover:underline cursor-pointer transition-all`} style={{ color: msg.color }}>
+                        {msg.authorDisplay || msg.author}
                       </span>
                       {msg.status !== 'failed' && (
                         <span className="text-discord-text-dark text-xs opacity-60 group-hover:opacity-100 transition-opacity">
@@ -276,22 +345,21 @@ const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp
                     )}
                   </div>
                 </div>
-              ))}
+              );
+              })}
               
-              {/* Scroll anchor */}
-              <div ref={messagesEndRef} />
             </div>
             {/* Extra space at bottom pentru momentum scrolling */}
             <div style={{ height: '10px' }}></div>
           </div>
+          )}
         </div>
 
-        
-        {/* Scroll to bottom button - poziționat relativ la messages area */}
+        {/* Scroll to bottom button */}
         {showScrollButton && (
           <button
             onClick={scrollToBottom}
-            className="absolute bottom-6 right-6 w-10 h-10 bg-discord-secondary hover:bg-discord-hover rounded-full flex items-center justify-center text-discord-green hover:text-discord-green-bright transition-all shadow-lg hover:shadow-glow-green-sm z-10"
+            className="absolute bottom-6 right-6 w-10 h-10 bg-discord-secondary hover:bg-discord-hover rounded-full flex items-center justify-center text-discord-green hover:text-discord-green-bright transition-all shadow-lg z-10"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9l6 6 6-6" />
@@ -310,7 +378,17 @@ const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp
         
         <TypingIndicator />
       </div>
-    </div>
+      </div>
+
+      {/* User Profile Modal */}
+      {selectedProfile && (
+        <UserProfile 
+          userId={selectedProfile} 
+          isModal={true} 
+          onClose={() => setSelectedProfile(null)} 
+        />
+      )}
+    </>
   );
 };
 

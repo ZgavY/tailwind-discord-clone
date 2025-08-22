@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Textarea } from '@mantine/core';
+import { useAuth } from '../contexts/AuthContext';
 
 const ChatInput = ({ selectedChannel, onSendMessage, isSending }) => {
   const [message, setMessage] = useState('');
   const inputRef = useRef(null);
   const containerRef = useRef(null);
-  const previousInputHeight = useRef(0);
+  const { currentUser } = useAuth();
 
   const handleSendMessage = async () => {
     if (!message.trim() || isSending) return;
@@ -13,21 +15,14 @@ const ChatInput = ({ selectedChannel, onSendMessage, isSending }) => {
     const tempId = Date.now();
     setMessage('');
     
-    // Reset textarea height și focus
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      requestAnimationFrame(() => {
-        if (inputRef.current) {
-          inputRef.current.style.height = '28px';
-        }
-      });
-    }
-    
     // Adaugă mesajul cu status "sending"
     const pendingMessage = {
       id: tempId,
-      author: 'root@emoney',
-      role: 'user',
+      author: currentUser.username,
+      authorDisplay: currentUser.displayName,
+      role: currentUser.role,
+      avatar: currentUser.avatar,
+      color: currentUser.color,
       timestamp: new Date(),
       content: messageToSend,
       status: 'sending'
@@ -72,11 +67,6 @@ const ChatInput = ({ selectedChannel, onSendMessage, isSending }) => {
 
   // Listen for retry focus events
   useEffect(() => {
-    // Initialize height reference
-    if (inputRef.current) {
-      previousInputHeight.current = inputRef.current.offsetHeight;
-    }
-    
     const handleRetryFocus = () => {
       if (inputRef.current) {
         // Try focus with slight delay to ensure DOM is ready
@@ -91,61 +81,59 @@ const ChatInput = ({ selectedChannel, onSendMessage, isSending }) => {
   }, []);
 
   return (
-    <div ref={containerRef} className="chat-input-container px-4 py-2 bg-discord-main flex-shrink-0">
+    <>
+      <style>{`
+        .discord-textarea-input {
+          background-color: transparent !important;
+          color: #00ff41 !important;
+          font-size: 13px !important;
+          line-height: 16px !important;
+          font-family: "Courier New", Courier, monospace !important;
+          font-weight: 400 !important;
+          padding: 6px 12px !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        .discord-textarea-input::placeholder {
+          color: #009900 !important;
+          opacity: 1 !important;
+          font-family: "Courier New", Courier, monospace !important;
+        }
+        .discord-textarea-input:disabled {
+          opacity: 0.5 !important;
+          background-color: transparent !important;
+          color: #00ff41 !important;
+        }
+        .discord-textarea-input:focus {
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
+      <div ref={containerRef} className="chat-input-container px-4 py-2 bg-discord-main flex-shrink-0">
       <div className="flex items-center bg-discord-secondary rounded-lg">
         <span className="text-discord-green-bright px-2">$</span>
         <div className="flex-1 relative">
-          <textarea
+          <Textarea
             ref={inputRef}
             value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              
-              // Auto-resize textarea with delayed scroll prevention
-              const messagesContainer = document.querySelector('[data-messages-container]');
-              const currentScrollTop = messagesContainer ? messagesContainer.scrollTop : 0;
-              
-              e.target.style.height = 'auto';
-              const newHeight = Math.min(e.target.scrollHeight, 200);
-              e.target.style.height = newHeight + 'px';
-              
-              // Use setTimeout to restore scroll after browser auto-scroll
-              setTimeout(() => {
-                if (messagesContainer) {
-                  messagesContainer.scrollTop = currentScrollTop;
-                }
-              }, 0);
-              
-              // Show/hide scrollbar
-              const isAtMaxHeight = newHeight >= 200;
-              const currentOverflow = e.target.style.overflowY;
-              
-              if (isAtMaxHeight && currentOverflow !== 'auto') {
-                e.target.style.overflowY = 'auto';
-                e.target.classList.remove('scrollbar-hidden');
-                e.target.classList.add('scrollbar-thin');
-              } else if (!isAtMaxHeight && currentOverflow !== 'hidden') {
-                e.target.style.overflowY = 'hidden';
-                e.target.classList.remove('scrollbar-thin');
-                e.target.classList.add('scrollbar-hidden');
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
+            onChange={(event) => setMessage(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 handleSendMessage();
               }
             }}
             placeholder={`Mesaj în #${selectedChannel}...`}
             disabled={isSending}
-            rows={1}
-            className="w-full bg-transparent text-discord-green placeholder-discord-text-muted outline-none text-sm transition-all disabled:opacity-50 resize-none px-3 py-2 scrollbar-hidden"
-            style={{ 
-              minHeight: '28px',
-              maxHeight: '180px',
-              lineHeight: '16px',
-              paddingTop: '6px',
-              paddingBottom: '6px'
+            autosize
+            minRows={1}
+            maxRows={8}
+            variant="unstyled"
+            size="xs"
+            classNames={{
+              input: 'discord-textarea-input'
             }}
           />
           {/* Character counter pentru mesaje lungi */}
@@ -171,7 +159,8 @@ const ChatInput = ({ selectedChannel, onSendMessage, isSending }) => {
           )}
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
