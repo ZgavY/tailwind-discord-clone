@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import MemberStats from './MemberStats';
 
 const UserProfile = ({ userId, isModal = false, onClose }) => {
   const { mockUsers, currentUser } = useAuth();
@@ -49,7 +50,7 @@ const UserProfile = ({ userId, isModal = false, onClose }) => {
   if (isModal) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-discord-secondary border border-discord-border rounded-xl max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div className="bg-discord-secondary border border-discord-border rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
           <div className="relative">
             {/* Header */}
             <div className="p-6 border-b border-discord-border/30">
@@ -116,6 +117,12 @@ const UserProfile = ({ userId, isModal = false, onClose }) => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Member Stats */}
+              <div>
+                <h3 className="text-sm font-semibold text-discord-green uppercase tracking-wide mb-3">Performance</h3>
+                <MemberStats user={user} isDetailed={true} />
               </div>
 
               {/* Badges */}

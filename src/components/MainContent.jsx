@@ -4,6 +4,8 @@ import TypingIndicator from './TypingIndicator';
 import StatusIndicator from './StatusIndicator';
 import UserProfile from './UserProfile';
 import CoursesView from './CoursesView';
+import MemberManagement from './MemberManagement';
+import AchievementsView from './AchievementsView';
 import { useAuth } from '../contexts/AuthContext';
 
 const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp, onRetryMessage, isSending = false }) => {
@@ -221,9 +223,13 @@ const MainContent = ({ selectedChannel, messages, onSendMessage, formatTimestamp
             paddingBottom: '0.5rem'
           }}
         >
-          {/* Courses View pentru basics channel */}
+          {/* Special Views pentru anumite canale */}
           {selectedChannel === 'basics' ? (
             <CoursesView selectedChannel={selectedChannel} />
+          ) : (selectedChannel === 'admin-control' || selectedChannel === 'mentor-lounge') ? (
+            <MemberManagement selectedChannel={selectedChannel} />
+          ) : selectedChannel === 'general' ? (
+            <AchievementsView selectedChannel={selectedChannel} />
           ) : (
           <div className="space-y-4 max-w-4xl mx-auto">
             {/* Welcome Art */}

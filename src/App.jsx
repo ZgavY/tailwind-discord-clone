@@ -9,6 +9,7 @@ import MembersList from './components/MembersList';
 import MobileNotSupported from './components/MobileNotSupported';
 import UserSwitcher from './components/UserSwitcher';
 import AccessDenied from './components/AccessDenied';
+import { AchievementQueue } from './components/AchievementNotification';
 import { canUserAccessChannel } from './utils/permissions';
 
 const AppContent = () => {
@@ -312,6 +313,9 @@ const AppContent = () => {
             onClose={() => setDeniedChannel(null)} 
           />
         )}
+        
+        {/* Achievement Notifications */}
+        <AchievementQueue />
         </div>
     </MantineProvider>
   );

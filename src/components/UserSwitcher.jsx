@@ -45,6 +45,22 @@ const UserSwitcher = () => {
             <div className="p-2 border-b border-discord-border/30">
               <span className="text-xs text-discord-text-muted font-medium">DEV: Switch User</span>
             </div>
+            
+            {/* Test Achievement Button */}
+            <div className="p-2 border-b border-discord-border/30">
+              <button 
+                onClick={() => {
+                  if (window.triggerAchievement) {
+                    const achievements = ['first-profit', 'profit-100', 'first-course', 'chatty', 'level-up-profit'];
+                    const randomAchievement = achievements[Math.floor(Math.random() * achievements.length)];
+                    window.triggerAchievement(randomAchievement);
+                  }
+                }}
+                className="w-full text-xs bg-discord-green/20 text-discord-green rounded px-2 py-1 hover:bg-discord-green/30 transition-all"
+              >
+                🏆 Test Achievement
+              </button>
+            </div>
             <div className="max-h-64 overflow-y-auto">
               {mockUsers.map(user => (
                 <button
