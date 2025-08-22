@@ -16,243 +16,102 @@ body {
   font-size: 13px;
   line-height: 1.4;
   overflow-x: hidden;
-  
-  /* Previne scroll-ul orizontal pe mobile */
   position: relative;
   width: 100%;
-  
 }
 
-/* PWA Mobile Optimizations - Cross-Platform Safe Area Implementation */
+/* Mobile device detection - show "not supported" message only */
 @media (max-width: 767px) {
-  html {
-    /* Fill entire screen including safe areas */
-    min-height: calc(100% + env(safe-area-inset-top));
-    min-height: calc(100% + constant(safe-area-inset-top));
-    height: 100vh;
-    height: -webkit-fill-available;
-  }
-  
   body {
     font-size: 14px;
-    height: 100vh;
-    height: -webkit-fill-available;
-    overflow: hidden;
-    overscroll-behavior: none;
-    position: fixed;
-    width: 100vw;
-    top: 0;
-    left: 0;
-    
-    /* Nu mai punem padding pe body - o să îl punem direct pe header și content */
-    margin: 0;
-    padding: 0;
-  }
-  
-  #root {
-    height: 100vh;
-    height: -webkit-fill-available;
-    overflow: hidden;
-    overscroll-behavior: none;
-  }
-  
-  /* Prevent input zoom */
-  input, textarea, select {
-    font-size: 16px !important;
-  }
-  
-  /* iOS specific fixes */
-  textarea {
-    -webkit-appearance: none;
-    -webkit-user-select: text;
-  }
-  
-  /* Android/Samsung specific fixes */
-  /* On Android, status bar might not be fully hidden */
-  @supports not (padding: env(safe-area-inset-top)) {
-    body {
-      /* Fallback for devices without safe area support */
-      padding-top: 24px; /* Typical Android status bar height */
-    }
   }
 }
 
-/* Efect de scan lines - mai subtil pe mobile */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(0, 255, 65, 0.03),
-    rgba(0, 255, 65, 0.03) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-@media (max-width: 767px) {
-  body::before {
-    opacity: 0.5; /* Mai subtil pe mobile */
+/* Desktop-only optimization */
+@media (min-width: 768px) {
+  body {
+    overflow-y: scroll !important;
   }
 }
 
-/* Scrollbar custom - forțat să fie mereu vizibil */
-::-webkit-scrollbar {
-  width: 12px !important;
-  height: 12px !important;
-  display: block !important;
+/* Custom scrollbar styles pentru desktop */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #1a1a1a !important;
-  display: block !important;
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #00ff41 #1a1a1a;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #00ff41;
+  border-radius: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #39ff14;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #00ff41 !important;
-  border-radius: 0;
-  min-height: 30px !important;
-  display: block !important;
+/* Matrix glow effects */
+.shadow-glow-green-sm {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+.shadow-glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+.shadow-matrix {
+  box-shadow: 0 0 30px rgba(0, 51, 0, 0.8);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #39ff14 !important;
-  box-shadow: 0 0 5px #00ff41;
+/* Typing animation */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
 }
 
-/* Forțează scrollbar-ul să fie mereu vizibil - nu auto-hide */
-.scrollbar-always-visible {
-  overflow-y: scroll !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: #00ff41 #1a1a1a !important;
+.animate-typing {
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid #00ff41;
+  animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
 }
 
-/* Pentru Firefox */
-.scrollbar-always-visible {
-  scrollbar-width: thin !important;
-  scrollbar-color: #00ff41 #1a1a1a !important;
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: #00ff41; }
 }
 
-/* Mobile scrollbar - mai subțire */
-@media (max-width: 767px) {
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+/* Message animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Text selection */
-::selection {
-  background-color: #00ff41;
-  color: #0a0a0a;
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
 }
 
-/* Safe area pentru iPhone-uri cu notch și Android gesture navigation */
-@supports (padding: max(0px)) {
-  .safe-area-top {
-    padding-top: max(12px, env(safe-area-inset-top));
-  }
-  
-  .safe-area-bottom {
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-  }
-  
-  /* PWA specific safe area classes */
-  .pwa-safe-top {
-    padding-top: env(safe-area-inset-top);
-    padding-top: constant(safe-area-inset-top);
-  }
-  
-  .pwa-safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-bottom: constant(safe-area-inset-bottom);
-  }
-  
-  .pwa-safe-left {
-    padding-left: env(safe-area-inset-left);
-    padding-left: constant(safe-area-inset-left);
-  }
-  
-  .pwa-safe-right {
-    padding-right: env(safe-area-inset-right);
-    padding-right: constant(safe-area-inset-right);
-  }
+/* Matrix background gradient */
+.bg-discord-matrix {
+  background: linear-gradient(to bottom, transparent, #00ff41, transparent);
+  opacity: 0.1;
 }
 
-
-/* Animații mai rapide pe mobile pentru performanță */
-@media (max-width: 767px) {
-  * {
-    animation-duration: 0s !important;
-    transition-duration: 0s !important;
-  }
-}
-
-/* Touch feedback pentru mobile */
-@media (hover: none) {
-  button:active,
-  .cursor-pointer:active {
-    opacity: 0.7;
-    transform: scale(0.98);
-  }
-}
-
-/* Remove default browser outlines on mobile */
-button,
-input,
-textarea,
-select {
-  outline: none !important;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-focus-ring-color: transparent;
-}
-
-button:focus,
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none !important;
-}
-
-/* Prevent text selection pe UI elements */
-.select-none {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
-
-/* Mobile-specific utilities */
-@layer utilities {
-  /* Swipeable hint */
-  .swipe-hint {
-    position: relative;
-  }
-  
-  .swipe-hint::after {
-    content: '';
-    position: absolute;
-    right: -4px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 40px;
-    background: linear-gradient(to bottom, transparent, #00ff41, transparent);
-    opacity: 0.3;
-    animation: swipeHint 2s ease-in-out infinite;
-  }
-  
-  @keyframes swipeHint {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
-  }
-  
-}
+/* Installation prompt styles - REMOVED */
+/* PWA specific styles - REMOVED */
+/* Mobile optimizations - REMOVED */

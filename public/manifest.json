@@ -4,13 +4,13 @@
   "description": "E-Money Society - TERMINAL v2.0 - MATRIX MODE",
   "start_url": "/?source=pwa&v=2",
   "scope": "/",
-  "display": "fullscreen",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "display": "standalone",
+  "background_color": "#0c0c0c",
+  "theme_color": "#0c0c0c",
   "orientation": "portrait-primary",
   "categories": ["social", "communication", "finance"],
   "lang": "ro",
-  "display_override": ["fullscreen", "standalone"],
+  "display_override": ["standalone"],
   "prefer_related_applications": false,
   "icons": [
     {

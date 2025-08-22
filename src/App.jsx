@@ -1,14 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ServerList from './components/ServerList';
 import ChannelSidebar from './components/ChannelSidebar';
 import MainContent from './components/MainContent';
 import MembersList from './components/MembersList';
-import InstallPrompt from './components/InstallPrompt';
-import { usePWA } from './hooks/usePWA';
+import MobileNotSupported from './components/MobileNotSupported';
 
 function App() {
   const [selectedChannel, setSelectedChannel] = useState('welcome');
-  const { shouldShowInstallPrompt } = usePWA();
+  const [isSending, setIsSending] = useState(false);
+  
+  // Detect mobile device (not just window size)
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       ('ontouchstart' in window) || 
+                       (navigator.maxTouchPoints > 0);
+
+
+
 
   // Funcția pentru formatarea timestamp-urilor ca în Discord
   const formatTimestamp = (date) => {
@@ -168,64 +175,82 @@ function App() {
           msg.id === messageData.id ? messageData : msg
         )
       }));
+      // Update isSending based on message status
+      if (messageData.status === 'sent' || messageData.status === 'failed') {
+        setIsSending(false);
+      }
     } else {
       // Add new message
       setMessages(prev => ({
         ...prev,
         [selectedChannel]: [...(prev[selectedChannel] || []), messageData]
       }));
+      // Set sending state when adding new message
+      if (messageData.status === 'sending') {
+        setIsSending(true);
+      }
     }
+  };
+
+  const handleRetryMessage = (failedMessage) => {
+    // Create a new message with new timestamp and ID
+    const newRetryMessage = {
+      ...failedMessage,
+      id: Date.now(), // New ID pentru poziție nouă
+      status: 'sending',
+      timestamp: new Date()
+    };
+    
+    // Remove old failed message și add new one
+    handleSendMessage(failedMessage, 'remove'); // Remove old
+    handleSendMessage(newRetryMessage); // Add new at bottom
+    
+    // Retry logic
+    setTimeout(() => {
+      if (Math.random() < 0.3) { // 30% chance to fail again
+        const failedAgain = {
+          ...newRetryMessage,
+          status: 'failed'
+        };
+        handleSendMessage(failedAgain, true);
+        
+        // Focus textarea after failed retry
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('retryFocusNeeded'));
+        }, 100);
+      } else {
+        const sentMessage = {
+          ...newRetryMessage,
+          status: 'sent'
+        };
+        handleSendMessage(sentMessage, true);
+        
+        // Focus textarea after successful retry
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('retryFocusNeeded'));
+        }, 100);
+      }
+    }, 300);
   };
 
 
 
-  // Dacă e pe mobil și nu e PWA, arată install prompt
-  if (shouldShowInstallPrompt) {
-    return <InstallPrompt />;
+  // Dacă e pe mobil, arată ecranul "nu e suportat"
+  if (isMobileDevice) {
+    return <MobileNotSupported />;
   }
 
   return (
-    <div className="bg-discord-dark text-discord-text font-mono w-full h-screen flex relative overflow-hidden" style={{overscrollBehavior: 'none'}}>
-      {/* Matrix background effect */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
+    <div className="bg-discord-dark text-discord-text font-mono w-full flex relative overflow-hidden" style={{height: '100svh', maxHeight: '100svh'}}>
+      {/* Matrix background effect - desktop only */}
+      <div className="hidden md:block absolute inset-0 opacity-10 pointer-events-none z-0">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-discord-matrix to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_#003300_0%,_transparent_50%)]"></div>
       </div>
       
-      {/* Mobile Layout */}
-      <div className="md:hidden w-full flex flex-col h-screen overflow-hidden" style={{overscrollBehavior: 'none'}}>
-        {/* Mobile Header */}
-        <header className="bg-discord-main border-b border-discord-border px-4 py-3 flex items-center justify-between pt-3 pwa-safe-top pwa-safe-left pwa-safe-right">
-          
-          {/* Left - Channel name */}
-          <div className="flex items-center">
-            <span className="text-discord-green text-lg mr-2">#</span>
-            <h1 className="text-discord-green font-semibold text-base">
-              {selectedChannel}
-            </h1>
-          </div>
-          
-          {/* Right - Status */}
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-500 text-xs font-medium">Online</span>
-            </div>
-            <span className="text-gray-400 text-xs">247 membri</span>
-          </div>
-          
-        </header>
-        
-        <MainContent 
-          selectedChannel={selectedChannel}
-          messages={messages[selectedChannel] || []}
-          onSendMessage={handleSendMessage}
-          formatTimestamp={formatTimestamp}
-        />
-      </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex w-full">
+      <div className="flex w-full">
         <ServerList />
         <ChannelSidebar 
           selectedChannel={selectedChannel}
@@ -236,6 +261,8 @@ function App() {
           messages={messages[selectedChannel] || []}
           onSendMessage={handleSendMessage}
           formatTimestamp={formatTimestamp}
+          onRetryMessage={handleRetryMessage}
+          isSending={isSending}
         />
         <MembersList />
       </div>
